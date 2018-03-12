@@ -5,7 +5,17 @@ date: "3/12/2018"
 output: html_document
 ---
 
-```{r}
-
+```{r, echo = FALSE}
+library(tidyverse)
 ```
+
+```{r}
+mpg
+```
+```{r}
+myplot <- ggplot(data = mpg, aes(x = displ, y = hwy)) +
+  geom_point() # scatter plot
+myplot 
+```
+
 
