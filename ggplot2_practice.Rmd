@@ -7,6 +7,7 @@ output: html_document
 
 ```{r, echo = FALSE}
 library(tidyverse)
+library(ggthemes)
 ```
 
 ```{r}
@@ -35,3 +36,28 @@ ggplot(mpg, aes(x = displ, y = hwy))+
   geom_point(alpha = 0.4, color = "blue")
 ```
 
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy, color = class)) +
+  geom_point() +
+  facet_wrap( ~ manufacturer, nrow = 5) + # subplot
+  theme_bw()
+```
+```{r}
+ggplot(mpg, aes(x = drv, y = hwy)) +
+  geom_boxplot()
+```
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  labs(title = "Relationship between engine size and highway mileage", 
+         x = "Engine size (liters displaced)",
+         y = "Highway Mileage (mpg)") +
+  theme(text = element_text(size=15)) + 
+  theme_bw()
+```
+```{r}
+ggplot(mpg, aes(x = fl, fill = class)) +
+  geom_bar() 
+
+```
