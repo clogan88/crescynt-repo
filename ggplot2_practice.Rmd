@@ -57,7 +57,9 @@ ggplot(mpg, aes(x = displ, y = hwy)) +
   theme_bw()
 ```
 ```{r}
-ggplot(mpg, aes(x = fl, fill = class)) +
+myplot <- ggplot(mpg, aes(x = fl, fill = class)) +
   geom_bar() 
 
+ggsave("example_plot.png", plot = myplot, width = 15, height = 15, units = "cm", device = "png")
 ```
+
