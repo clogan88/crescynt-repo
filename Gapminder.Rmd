@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 ```
 
-Download gapminder data frame  website using tidyverse read_csv function
+Download the gapminder data frame from a website using tidyverse read_csv function
 ```{r}
 gapminder <- read_csv("https://raw.githubusercontent.com/jules32/2017-11-30-MBARI/gh-pages/data/gapminder.csv")
 ```
@@ -37,5 +37,58 @@ using the brackets (more specific)
 ```{r}
 unique(gapminder$country)
 unique(gapminder[,"continent"])
+```
+Get summary statistics of data frame
+```{r}
+summary(gapminder)
+```
+Install skim package
+```{r}
+#install.packages("skimr") # why use comments here?
+```
+Add skimr library and run skim summary stats function on gapminder data
+```{r}
+library("skimr") # attach library to current working environment
+skim(gapminder)
+```
+Filter data using filter function
+```{r}
+filter(gapminder)
+```
+```{r}
+dplyr::filter(gapminder, country == "Switzerland")  # run filter function in dplyr
+```
+Using the `dplyr::filter` format tells R to use the `dplyr` version of `filter`
+```{r}
+dplyr::filter(gapminder, lifeExp < 30)  # filter on life expectancy under 30
+```
+
+```{r}
+dplyr::filter(gapminder, country == "Rwanda")  # filter on life expectancy under 30
+```
+Or check most recent year in Rwanda. How to do two countries at the same time? 
+```{r}
+filter(gapminder, country == "Rwanda", year == max(year))
+```
+Use select function in `dply` to select only certain columns
+```{r}
+dplyr::select(gapminder, country, year, pop) # select subset of columns from dataframe
+
+```
+Remove a column and make new data frame. Then `filter` using that data frame for the year 2007 only
+```{r}
+gapminder_no_cont <- dplyr::select(gapminder, -continent) # remove a single column from dataframe
+dplyr::filter(gapminder_no_cont, year == 2007) 
+```
+Use pipe operator `(%>%)` to avoid creating temporary files on same operation above
+```{r}
+dplyr::select(gapminder, -continent) %>% 
+  filter(year == 2007) 
+```
+Use `mutate` to create a new column in the data frame using math and a pipe to then sort the data in descending order
+```{r}
+gapminder %>%
+  mutate(gdp = gdpPercap * pop) %>%
+  arrange(desc(gdp))
 ```
 
