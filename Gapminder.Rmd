@@ -1,0 +1,41 @@
+---
+title: "Gapminder"
+author: "Cheryl"
+date: "3/13/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+Download gapminder data frame  website using tidyverse read_csv function
+```{r}
+gapminder <- read_csv("https://raw.githubusercontent.com/jules32/2017-11-30-MBARI/gh-pages/data/gapminder.csv")
+```
+Check out the first and last few lines of the data frame using head and tail
+```{r}
+head(gapminder)
+tail(gapminder)
+```
+Look at the structure of the data frame
+```{r}
+str(gapminder)
+```
+Look at data frame dimensions, number of rows & columns
+```{r}
+dim(gapminder)
+ncol(gapminder)
+nrow(gapminder)
+```
+Look at the number of unique countries in the data frame using $ to select a column or
+using the brackets (more specific)
+```{r}
+unique(gapminder$country)
+unique(gapminder[,"continent"])
+```
+
