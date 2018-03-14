@@ -1,0 +1,182 @@
+---
+title: "tidy_live_coral"
+author: "Cheryl Logan"
+date: "3/13/2018"
+output: html_document
+---
+
+```{r}
+## libraries
+library(tidyverse)
+library(janitor) # install.packages('janitor')
+library(skimr) # install.packages('skimr')
+library(stringr) # added when we needed it for benthic data
+
+## data filepaths/urls ----
+
+## benthic data
+benthic_url <- 'https://www.nodc.noaa.gov/archive/arc0054/0104255/1.1/data/0-data/cd08/100308OaAla03m.CSV'
+
+## buoy data
+buoy_url <- 'http://www.ndbc.noaa.gov/view_text_file.php?filename=mokh1h2010.txt.gz&dir=data/historical/stdmet/'
+```
+
+# Benthic Data
+This is benthic data from a series of CRAMP (Coral Reef Assessment Monitoring Program) data that includes Kaneohe Bay coral survey still images and extracted data (with larger Hawaiian Islands context):
+
+2015. Hawaii Coral Reef Assessment and Monitoring Program (CRAMP): benthic data from digital still images made in 2008-2010 on Kauai, Oahu, Molokai, Maui, and Hawaii (NODC Accession 0104255). NOAA NCEI Oceanographic Data Archive.
+
+The data we are using resides here.
+
+```{r}
+benthic_raw <- read_csv(benthic_url)
+head(benthic_raw)
+names(benthic_raw)
+```
+Use `janitor` to clean-up column headings (makes everything lowercase and replaces spaces with underscores)!!
+
+```{r}
+benthic <- benthic_raw %>% 
+  janitor::clean_names() # clean up column names
+
+names(benthic) # view new column names
+```
+
+```{r}
+benthic <- benthic %>%
+  select(id_name, point, x, y, id_date)
+
+head(benthic)
+```
+Remove the # sign from id_date column using stringr
+```{r}
+benthic <- benthic %>%
+  mutate(date = stringr::str_replace_all(id_date, "#","")) # replace # with nothing
+```
+Remove old column with pounds (must be a better way to do this in above command)
+```{r}
+benthic <- dplyr::select(benthic, -id_date)
+```
+Skim summary stats using `skim` function
+```{r}
+skimr::skim(benthic)
+```
+```{r}
+unique(benthic$id_name)
+```
+```{r}
+ggplot(benthic, aes(x = date, fill = id_name)) +
+  geom_bar()
+```
+# Buoy Data
+The buoy data come from the National Buoy Data Center. We are going to use data from the inner Kaneohe Bay buoy (station MOKH1). More details on this station are available here:
+http://www.ndbc.noaa.gov/station_page.php?station=MOKH1
+
+```{r}
+buoy <- readr::read_csv(buoy_url)
+head(buoy) # hmm this doesn't look right! Why not?
+```
+This is actually a table not a csv, so let's re-import
+```{r}
+## read_table
+buoy_raw <- read_table(buoy_url)
+head(buoy) ## still not quite right -- missed some columns. 
+```
+It's a file type called fixed width, so we use read_table2 function to read in the data
+```{r}
+## read_table2
+buoy_raw <- read_table2(buoy_url)
+head(buoy_raw) ## this is what we need
+```
+
+Now, let's wrangle data by calling it a new variable, `buoy`
+
+```{r}
+buoy <- buoy_raw
+```
+
+We need to combine header rows 1 & 2 by overwriting column names but separate using an underscore `_`
+```{r}
+## 1. overwrite column names
+names(buoy) <- str_c(names(buoy),                  ## current header
+                  buoy %>% filter(`#YY` == "#yr"), ## row1 -- don't say buoy[1,] 
+                  sep = "_")                       ## separate by `_`
+
+## inspect
+names(buoy) ## Looks a lot better
+```
+
+Clean up a bit more to get rid of the `#`s and the `/`s. 
+
+```{r}
+## 2. clean up a bit more to get rid of the `#`s and the `/`s. 
+names(buoy) <- str_replace_all(names(buoy), "#", "")  # replace `#` with nothing 
+names(buoy) <- str_replace_all(names(buoy), "/", "_") # replace `/` with `_`
+
+## inspect to make sure it worked
+names(buoy)
+```
+```{r}
+head(buoy)
+```
+Remove redundant row with units
+```{r}
+## 3. remove redundant row with units
+buoy <- buoy %>%
+  filter(YY_yr != "#yr") # filter out row where YY_yr is equal to "#yr"
+
+head(buoy)
+```
+
+
+```{r}
+ggplot(buoy, aes(WTMP_degC)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 90)) # rotate x-axis labels 90 degrees
+```
+Water temperature is never going to be 999C, so here we begin to see that 99 or 999 are missing value codes. We can replace it with NA. Another issue is that the values are showing up as character strings rather than integers. Also need to fix this. Will do that later
+
+```{r}
+names(buoy)
+names(benthic)
+```
+Let's unite year month and day into a single data value in buoy data
+
+```{r}
+buoy <- buoy %>%
+  unite(date, c(YY_yr, MM_mo, DD_dy), sep = "-") # concatenate contents of 3 columns into one column to join the two datasets using a unique ID
+
+head(buoy)
+```
+```{r}
+bb_join <- left_join(benthic, buoy, by = "date")
+
+bb_join %>% select(id_name, x, y, date, hh_hr, mm_mn, WTMP_degC) %>%
+head()
+```
+Problem here is that temp was taken every 6 minutes but benthic data is just for a single day. Now we are going to remove all the 999 from the temp column and replace them with NA. Then, we will force that column to be an integer (vs character). Then use group by date, and take the average temp for that day. Call this new dataframe buoy_daily so we can then join it with benthic.
+
+```{r}
+buoy_daily <- buoy %>%
+  mutate(WTMP_degC_clean = gsub("999.0", NA, WTMP_degC)) %>% # make temp column numeric
+  mutate(WTMP_degC_clean = as.numeric(WTMP_degC_clean)) %>%
+  group_by(date) %>%
+  summarize(mean_WTMP_degC_clean = mean(WTMP_degC_clean, na.rm=T)) %>% # make
+  ungroup()
+
+head(buoy_daily)
+```
+
+Now, re-do the join!
+```{r}
+bb_join <- left_join(benthic, buoy_daily, by = "date")
+
+head(bb_join)
+```
+Let's try to plot this data now... first shot here maybe not the best 
+```{r}
+ggplot(bb_join, aes(id_name,mean_WTMP_degC_clean)) +
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90)) # rotate x-axis labels 90 degrees
+
+```

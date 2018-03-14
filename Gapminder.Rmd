@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(tidyverse)
 ```
-
+## Load Dataset
 Download the gapminder data frame from a website using tidyverse read_csv function
 ```{r}
 gapminder <- read_csv("https://raw.githubusercontent.com/jules32/2017-11-30-MBARI/gh-pages/data/gapminder.csv")
@@ -55,6 +55,7 @@ Filter data using filter function
 ```{r}
 filter(gapminder)
 ```
+## Using dplyr
 ```{r}
 dplyr::filter(gapminder, country == "Switzerland")  # run filter function in dplyr
 ```
@@ -92,3 +93,63 @@ gapminder %>%
   arrange(desc(gdp))
 ```
 
+Group data by country, `mutate` data frame and `ungroup`
+```{r}
+gapminder %>%  # data frame to work on
+  group_by(country) %>%  # pull out country column
+  mutate(gdp = gdpPercap * pop, max_gdp = max(gdp)) %>%  # create 2 new columns using mutate 
+  ungroup()
+```
+```{r}
+gapminder %>%
+  group_by(country) %>%
+  mutate(gdp = gdpPercap * pop, max_gdp = max(gdp)) %>%  # create 2 new columns using mutate 
+  summarize(max_gdp = max(gdp)) %>% # summarize and take the max
+  ungroup() # always ungroup to be sure you have ended the group_by
+```
+## Using Join
+Now we are going to join or combine two tables together using a unique ID in dplyr
+options are: left_join, right_joint, inner-Join, full_join
+see https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf
+
+Read in CO2 data for a subset of countries. It's good practice to name variables when reading in new data frames (avoid caps, be consistent)
+```{r}
+co2 <- readr::read_csv("https://raw.githubusercontent.com/OHI-Science/data-science-training/master/data/co2.csv") 
+```
+
+https://raw.githubusercontent.com/OHI-Science/data-science-training/master/data/co2.csv
+```{r}
+head(co2)
+summary(co2)
+```
+Now lets join this CO2 data with the gapminder dataset
+```{r}
+gap_2007 <- gapminder %>%
+  filter(year==2007)  #filter on year
+```
+View gap_2007 data and check length of country list
+```{r}
+# View(gap_2007)
+length(unique(gapminder$country)) # find length of unique country list
+```
+### Try Join
+Try a join by ID of "country"
+```{r}
+left_join(gap_2007, co2, by = "country") # 1st dataset is left, 2nd is right
+right_join(gap_2007, co2, by = "country") # try right join
+full_join(gap_2007, co2, by = "country") # try full join
+```
+Can use set_diff or anti-join to check
+```{r}
+AirPassengers
+```
+ ## Reshaping Data
+ Use tidyr to tidy data by reshaping and summarizing (gather, spread, separate, unite)
+ Note this is not the best example  
+```{r}
+tidyr::gather(as.data.frame(AirPassengers), month, passenger)
+```
+```{r}
+gap_wide <- read_csv("https://raw.githubusercontent.com/OHI-Science/data-science-training/master/data/gapminder_wide.csv")
+```
+ 

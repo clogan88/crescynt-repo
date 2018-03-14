@@ -26,4 +26,5 @@ unique(gap_better$obs_type) # see what types are in the obs_type column
 gap_better %>%
   spread(obs_type, observ_value) # need column name and associated value
 ```
-
+Insert image into R markdown
+![](Figs/combine_data_sets.png)
