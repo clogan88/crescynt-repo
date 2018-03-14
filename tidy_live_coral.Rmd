@@ -180,3 +180,10 @@ ggplot(bb_join, aes(id_name,mean_WTMP_degC_clean)) +
   theme(axis.text.x = element_text(angle = 90)) # rotate x-axis labels 90 degrees
 
 ```
+Cheryl's notes on dplyr functions
+filter -- subsetting by row
+select -- subsetting by col
+summarize -- complete summary operations
+group_by -- group dataset by something (eg data)
+arrange -- sort or order
+mutate -- adding a new column (or overwriting a col)
