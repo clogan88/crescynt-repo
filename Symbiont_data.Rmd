@@ -23,8 +23,7 @@ sort(unique(symbionts$colony)) # view unique colony IDs
 ```{r, results='hide'}
 sym_dom <- symbionts %>%
   dplyr::filter(reef == 44) %>% # get data from reef 44
-  dplyr::select(colony, days, vis, propD, score) # select columns of interest
-  
+  dplyr::select(colony, date, days, vis, propD, score) # select columns of interest
 
 head(sym_dom)
 ```
@@ -51,19 +50,19 @@ sym_dom_graph <- sym_dom %>%
 ```{r plot, echo=FALSE}
 sym_dom_graph %>% 
   dplyr::filter(vis == "bleached") %>% 
-  ggplot(aes(x = days, y = propD, color = bleaching)) +
+  ggplot(aes(x = date, y = propD, color = bleaching)) +
   geom_point() + 
   facet_wrap( ~ colony, nrow = 2) +
   theme(axis.text.x = element_text(angle = 90)) + # rotate x-axis labels 90 degrees
-  labs(title = "Bleached", x = "Days", y = "Proportation of Clade D Symbionts")
+  labs(title = "Originally Bleached Montipora", x = "Days", y = "Proportation of Clade D Symbionts")
 
 sym_dom_graph %>% 
   dplyr::filter(vis == "not bleached") %>% 
-  ggplot(aes(x = days, y = propD, color = bleaching)) +
+  ggplot(aes(x = date, y = propD, color = bleaching)) +
   geom_point() +
   facet_wrap( ~ colony, nrow = 2) +
   theme(axis.text.x = element_text(angle = 90)) + # rotate x-axis labels 90 degrees
-  labs(title = "Bleached", x = "Days", y = "Proportation of Clade D Symbionts")
+  labs(title = "Originally Not Bleached Montipora", x = "Days", y = "Proportation of Clade D Symbionts")
 
 ```
 

@@ -167,7 +167,7 @@ buoy_daily <- buoy %>%
 head(buoy_daily)
 ```
 
-Now, re-do the join!
+Now, re-do the join! blahblah
 ```{r}
 bb_join <- left_join(benthic, buoy_daily, by = "date")
 
